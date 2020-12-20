@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: zoo
+  namespace: {{ .Values.namespace }}
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: zookeeper
+      storage: persistent
+  serviceName: zoo
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+        storage: persistent
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - zookeeper
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - command:
+        - ./bin/zookeeper-server-start.sh
+        - /etc/kafka/zookeeper.properties
+        env:
+        - name: KAFKA_LOG4J_OPTS
+          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx1G -Xms1G
+        image: solsson/kafka:2.1.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -ce
+              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
+        name: zookeeper
+        ports:
+        - containerPort: {{ .Values.clientPort }}
+          name: client
+        - containerPort: {{ .Values.peerPort }}
+          name: peer
+        - containerPort: {{ .Values.leaderElectPort }}
+          name: leader-election
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - '[ "imok" = "$(echo ruok | nc -w 1 -q 1 127.0.0.1 {{ .Values.clientPort }})" ]'
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1200Mi
+          requests:
+            cpu: 100m
+            memory: 768Mi
+        volumeMounts:
+        - mountPath: /etc/kafka
+          name: config
+        - mountPath: /var/lib/zookeeper
+          name: data
+      initContainers:
+      - command:
+        - /bin/bash
+        - /etc/kafka-configmap/init.sh
+        image: solsson/kafka-initutils@sha256:2cdb90ea514194d541c7b869ac15d2d530ca64889f56e270161fe4e5c3d076ea
+        imagePullPolicy: IfNotPresent
+        name: init-config
+        volumeMounts:
+        - mountPath: /etc/kafka-configmap
+          name: configmap
+        - mountPath: /etc/kafka
+          name: config
+        - mountPath: /var/lib/zookeeper
+          name: data
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: {{ .Values.zookeeperConfigName }}
+        name: configmap
+      - name: config
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.zookeeperStorageSize }}Gi
+      storageClassName: {{ .Values.zookeeperStorageClassName }}

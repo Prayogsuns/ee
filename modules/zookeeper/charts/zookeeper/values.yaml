@@ -1,0 +1,10 @@
+zookeeperStorageClassName: "kafka-zookeeper"
+#zookeeperStorageSize: 5
+dependencyAnnotation: "\"\""
+#namespace: kafka
+zookeeperConfigName: "zookeeper-config"
+#data: {}
+clientPort: 2181
+peerPort: 2888
+leaderElectPort: 3888
+statefulSetZookeeperName: "zoo"
