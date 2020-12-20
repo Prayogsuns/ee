@@ -1,0 +1,10 @@
+#deploymentName: ""
+#replicas: 3
+#dependencyAnnotation: "\"\""
+#serviceName: ""
+#containerImage: ""
+#serviceVersion: ""
+#kafkaHost: ""
+#schemaRegistryUrl: ""
+#streamName: ""
+#legacyArgsEnvValue: ""

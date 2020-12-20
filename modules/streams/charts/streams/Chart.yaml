@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for event engine streams deployment on Kubernetes
+name: streams
+version: 0.1.0

@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: {{ .Values.deploymentName }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      service: {{ .Values.serviceName }}
+  template:
+    metadata:
+      labels:
+        service: {{ .Values.serviceName }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - {{ .Values.serviceName }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: {{ .Values.kafkaHost }}
+        - name: KAFKA_SCHEMA_REGISTRY_URL
+          value: {{ .Values.schemaRegistryUrl }}
+        - name: STREAM_NAME
+          value: {{ .Values.streamName }}
+        - name: LEGACY_ARGS
+          value: {{ .Values.legacyArgsEnvValue }}
+        image: {{ .Values.containerImage }}:{{ .Values.serviceVersion }}
+        name: {{ .Values.serviceName }}-container
+        resources:
+          limits:
+            cpu: 200m
+            memory: 768Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+      imagePullSecrets:
+      - name: dockercreds
