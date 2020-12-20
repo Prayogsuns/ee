@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: {{ .Values.kafkaStatefulSetName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: {{ .Values.headlessServiceName }}
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - kafka
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - command:
+        - kafka-server-start.sh
+        - /etc/kafka/server.properties
+        env:
+        - name: KAFKA_LOG4J_OPTS
+          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx4G -Xms4G
+        - name: KAFKA_JVM_PERFORMANCE_OPTS
+          value: -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35
+            -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80
+        - name: JMX_PORT
+          value: "5555"
+        - name: ZOOKEEPER_SERVERS
+          value: {{ .Values.env.ZOOKEEPER_SERVERS }}
+        - name: ZOOKEEPER_REPLICAS
+          value: "3"
+        - name: AVLM_ONLY_DEPLOYMENT
+          value: {{ .Values.env.AVLM_ONLY_DEPLOYMENT }}
+        - name: KAFKA_DISCOVERY_DIR
+          value: /etc/kafka_discovery
+        image: {{ .Values.brokerContainerImage }}:k8s-{{ .Values.brokerVersion }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - bash
+              - -c
+              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
+        livenessProbe:
+          exec:
+            command:
+            - kafka-check
+            - --cluster-type=event_engine
+            - min_isr
+          failureThreshold: 5
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        name: broker
+        ports:
+        - containerPort: {{ .Values.brokerPort }}
+          name: inside
+        - containerPort: 5555
+          name: jmx
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.brokerPort }}
+        resources:
+          limits:
+            cpu: "1"
+            memory: 5Gi
+          requests:
+            cpu: 100m
+            memory: 4Gi
+        volumeMounts:
+        - mountPath: /opt/dds/scripts/config
+          name: configmap
+        - mountPath: /etc/kafka
+          name: config
+        - mountPath: /var/lib/kafka/data
+          name: data
+        - mountPath: /etc/kafka_discovery
+          name: kafka-utils
+      imagePullSecrets:
+      - name: dockercreds
+      initContainers:
+      - command:
+        - /bin/bash
+        - /opt/dds/scripts/kafka-k8s-init.sh
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: KAFKA_SVC_DNS
+          value: broker.kafka
+        - name: KAFKA_PORT
+          value: "9092"
+        image: {{ .Values.brokerContainerImage }}:k8s-{{ .Values.brokerVersion }}
+        imagePullPolicy: IfNotPresent
+        name: init
+        volumeMounts:
+        - mountPath: /opt/dds/scripts/config
+          name: configmap
+        - mountPath: /etc/kafka
+          name: config
+        - mountPath: /etc/kafka_discovery
+          name: kafka-utils
+      terminationGracePeriodSeconds: 20
+      volumes:
+      - configMap:
+          name: {{ .Values.kafkaConfigName }}
+        name: configmap
+      - emptyDir: {}
+        name: config
+      - emptyDir: {}
+        name: kafka-utils
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.kafkaStorageSize }}Gi
+      storageClassName: {{ .Values.kafkaStorageClassName }}

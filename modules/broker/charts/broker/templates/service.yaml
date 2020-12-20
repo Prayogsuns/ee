@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.clientServiceName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  type: NodePort
+  ports:
+  - name: broker
+    port: {{ .Values.brokerPort }}
+    protocol: TCP
+    targetPort: {{ .Values.brokerPort }}
+  selector:
+    app: kafka

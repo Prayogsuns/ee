@@ -1,0 +1,15 @@
+kafkaStorageClassName: "kafka-broker"
+#kafkaStorageSize: 5
+dependencyAnnotation: "\"\""
+#namespace: kafka
+kafkaConfigName: "broker-config"
+#data: {}
+brokerPort: 9092
+clientServiceName: "bootstrap"
+headlessServiceName: "broker"
+#kafkaStatefulSetName: ""
+#brokerContainerImage: ""
+#brokerVersion: ""
+#env:
+#  ZOOKEEPER_SERVERS: "zoo-0.zoo.kafka:2181,zoo-1.zoo.kafka:2181,zoo-2.zoo.kafka:2181/kafka"
+#  AVLM_ONLY_DEPLOYMENT: "false"

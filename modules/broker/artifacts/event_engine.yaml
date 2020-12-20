@@ -1,0 +1,10 @@
+---
+  clusters:
+    event_engine:
+      broker_list:
+        - "${pod-name}-0.${svc-dns}:${broker-port}"
+        - "${pod-name}-1.${svc-dns}:${broker-port}"
+        - "${pod-name}-2.${svc-dns}:${broker-port}"
+      zookeeper: "${zookeeper-servers}" # Include chroot (/kafka)
+  local_config:
+    cluster: event_engine
