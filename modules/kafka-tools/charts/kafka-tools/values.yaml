@@ -1,0 +1,27 @@
+namespace: ""
+kafkaConfigName: "kafka-tools-config"
+data: {}
+schemaRegistryServiceName: "kafka-schema-registry"
+schemaRegistryServicePort: 8081
+schemaRegistryExternalServiceName: "kafka-schema-registry-external"
+schemaRegistryServicePort: 
+kafkaSchemaRegistryStatefulSetName: "kafka-schema-registry"
+kafkaSchemaRegistryStatefulSet:
+  dependencyAnnotation: "\"\""
+kafkaSchemaRegistryStatefulSetContainerName: "kafka-schema-registry"
+env:
+  SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "${join(",", formatlist("%s-%s.%s.%s:%s", var.zookeeper-pod-name, list("0","1","2"), var.zookeeper-headless-svc-name, var.namespace, var.zookeeper-client-port))}/kafka"
+  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: join(",", formatlist("PLAINTEXT://%s-%s.%s.%s:%s", var.broker-pod-name, list("0","1","2"), var.broker-headless-svc-name, var.namespace, var.broker-port))
+  SCHEMA_REGISTRY_HOST_NAME: "$(POD_NAME).${kubernetes_service.schema-registry.metadata.0.name}.${var.namespace}"
+enableUi: false
+schemaRegistryUiServiceName: "schema-registry-ui"
+schemaRegistryUiDeploymentName: "schema-registry-ui"
+schemaRegistryUiDeploymentContainerName: "schema-registry-ui"
+restProxyServiceName: "rest-proxy"
+restProxyDeploymentName: "rest-proxy"
+restProxyDeployment:
+  dependencyAnnotation: "\"\""
+restProxyPort: 8082
+topicsUiServiceName: "topics-ui"
+topicsUiDeploymentName: "topics-ui"
+topicsUiDeploymentContainerName: "kafka-connect"

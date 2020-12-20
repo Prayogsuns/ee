@@ -1,0 +1,37 @@
+{{- if eq .Values.enableUi true }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.topicsUiDeploymentName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: topics-ui
+  template:
+    metadata:
+      labels:
+        app: topics-ui
+    spec:
+      containers:
+      - env:
+        - name: KAFKA_REST_PROXY_URL
+          value: "http://{{ .Values.restProxyServiceName }}.{{ .Values.namespace }}:{{ .Values.restProxyPort }}"
+        - name: PROXY
+          value: "true"
+        image: landoop/kafka-topics-ui:0.9.4
+        name: {{ .Values.topicsUiDeploymentContainerName }}
+        ports:
+        - containerPort: 8000
+          name: topics-ui
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 10m
+{{- end }}

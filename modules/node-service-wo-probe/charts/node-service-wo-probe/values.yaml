@@ -1,0 +1,9 @@
+enabled: false
+#serviceName: ""
+#servicePort: 
+#serviceVersion: 
+#replicas: 3
+dependencyAnnotation: "\"\""
+#containerImage: 
+#envVars: {}
+

@@ -1,0 +1,37 @@
+{{- if eq .Values.enableUi true }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.schemaRegistryUiDeploymentName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry-ui
+  template:
+    metadata:
+      labels:
+        app: schema-registry-ui
+    spec:
+      containers:
+      - env:
+        - name: SCHEMAREGISTRY_URL
+          value: "http://{{ .Values.schemaRegistryServiceName }}.{{ .Values.namespace }}:{{ .Values.schemaRegistryServicePort }}"
+        - name: PROXY
+          value: "true"
+        image: landoop/schema-registry-ui:0.9.5
+        name: {{ .Values.schemaRegistryUiDeploymentContainerName }}
+        ports:
+        - containerPort: 8000
+          name: ui-port
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
+          requests:
+            cpu: 10m
+{{- end }}

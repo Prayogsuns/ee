@@ -1,0 +1,9 @@
+#serviceName: ""
+#internalSvcPort: 
+#httpPort: 
+#serviceVersion: 
+#replicas: 3
+dependencyAnnotation: "\"\""
+#containerImage: 
+#envVars: {}
+

@@ -1,0 +1,13 @@
+{{- if eq .Values.enableUi true }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.topicsUiServiceName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+  selector:
+    app: topics-ui
+{{- end }}

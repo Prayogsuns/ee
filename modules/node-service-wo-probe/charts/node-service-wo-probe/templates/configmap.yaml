@@ -1,0 +1,8 @@
+{{- if eq .Values.enabled true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.service.name }}-env-vars
+data:
+  {{- toYaml .Values.envVars | nindent 2 }}
+{{- end }}

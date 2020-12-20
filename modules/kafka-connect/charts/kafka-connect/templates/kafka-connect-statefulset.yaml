@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    dependency: {{ .Values.kafkaConnectStatefulSet.dependencyAnnotation }}
+  name: {{ .Values.kafkaConnectStatefulSetName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ .Values.kafkaConnectService.selectorLabelValue }}
+  serviceName: {{ .Values.kafkaConnectServiceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.kafkaConnectService.selectorLabelValue }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ .Values.kafkaConnectService.selectorLabelValue }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - command:
+        - connect-distributed.sh
+        - /etc/kafka/connect-distributed.properties
+        env:
+        - name: CLASSPATH
+          value: /connectors/*
+        - name: KAFKA_LOG4J_OPTS
+          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
+        - name: JMX_PORT
+          value: "5555"
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx1G -Xms1G
+        - name: KAFKA_CONNECT_URL
+          value: "http://localhost:{{ .Values.kafkaConnectPort }}"
+        - name: KAFKA_SCHEMA_REGISTRY_URL
+          value: {{ .Values.kafkaConnectStatefulSet.env.KAFKA_SCHEMA_REGISTRY_URL }}
+        - name: AVLM_ONLY_DEPLOYMENT
+          value: {{ .Values.kafkaConnectStatefulSet.env.AVLM_ONLY_DEPLOYMENT }}
+        image: {{ .Values.kafkaConnectStatefulSetContainerImage }}:{{ .Values.kafkaConnectVersion }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -ce
+              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.kafkaConnectPort }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 120
+        name: {{ .Values.kafkaConnectStatefulSetContainerName }}
+        ports:
+        - containerPort: {{ .Values.kafkaConnectPort }}
+          name: kafka-connect
+        - containerPort: 5555
+          name: jmx
+        readinessProbe:
+          periodSeconds: 15
+          successThreshold: 1
+          tcpSocket:
+            port: {{ .Values.kafkaConnectPort }}
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1500Mi
+          requests:
+            cpu: 50m
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /opt/dds/scripts/config
+          name: configmap
+        - mountPath: /etc/kafka
+          name: config
+      imagePullSecrets:
+      - name: dockercreds
+      initContainers:
+      - command:
+        - /bin/bash
+        - /opt/dds/scripts/kafka-k8s-init.sh
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: KAFKA_CONNECT_SVC_DNS
+          value: {{ .Values.kafkaConnectServiceName }}.{{ .Values.namespace }}
+        - name: KAFKA_PORT
+          value: {{ .Values.brokerPort }}
+        image: {{ .Values.kafkaConnectStatefulSetContainerImage }}:{{ .Values.kafkaConnectVersion }}
+        name: init
+        volumeMounts:
+        - mountPath: /opt/dds/scripts/config
+          name: configmap
+        - mountPath: /etc/kafka
+          name: config
+      volumes:
+      - configMap:
+          name: {{ .Values.kafkaConfigName }}
+        name: configmap
+      - emptyDir: {}
+        name: config
+  updateStrategy:
+    type: RollingUpdate

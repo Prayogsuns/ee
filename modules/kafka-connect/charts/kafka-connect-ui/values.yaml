@@ -1,0 +1,8 @@
+#namespace: ""
+enableUi: false
+kafkaConnectUiServiceName: "connect-ui"
+kafkaConnectUiDeploymentName: "connect-ui"
+dependencyAnnotation: "\"\""
+kafkaConnectUiDeploymentContainerName: "kafka-connect"
+#env:
+#  CONNECT_URL: join(",", formatlist("http://%s-%s.%s.%s:%s", kubernetes_stateful_set.kafka-connect.metadata.0.name, list("0","1","2"), kubernetes_service.kafka-connect.metadata.0.name, var.namespace, var.kafka-connect-port))

@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for event engine event-subscription-service module
+name: event-subscription-service
+version: 0.1.0

@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for event engine node-service-wo-probe module
+name: node-service-wo-probe
+version: 0.1.0

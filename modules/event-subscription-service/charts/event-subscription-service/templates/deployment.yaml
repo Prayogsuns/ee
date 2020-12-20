@@ -1,0 +1,60 @@
+kind: Deployment
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: {{ .Values.serviceName }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      service: {{ .Values.serviceName }}
+  template:
+    metadata:
+      labels:
+        service: {{ .Values.serviceName }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - {{ .Values.serviceName }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100    
+      containers:
+      - name: {{ .Values.serviceName }}-container      
+        image: {{ .Values.containerImage }}:{{ .Values.serviceVersion }}
+        ports:
+        - containerPort: {{ .Values.internalSvcPort }}
+        - containerPort: {{ .Values.httpPort }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.internalSvcPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.internalSvcPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10        
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.serviceName }}-env-vars"
+            optional: false	
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 1Gi            
+      imagePullSecrets:
+      - name: dockercreds

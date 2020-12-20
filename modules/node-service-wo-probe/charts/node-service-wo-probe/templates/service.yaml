@@ -1,0 +1,15 @@
+{{- if eq .Values.enabled true }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceName }}
+spec:
+  type: NodePort
+  ports:
+  - name: {{ .Values.serviceName }}-port
+    port: {{ .Values.servicePort }}
+    protocol: TCP
+    targetPort: {{ .Values.servicePort }}
+  selector:
+    service: {{ .Values.serviceName }}
+{{- end }}

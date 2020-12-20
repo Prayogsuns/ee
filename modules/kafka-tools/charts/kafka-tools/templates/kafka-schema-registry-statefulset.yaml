@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    dependency: {{ .Values.kafkaSchemaRegistryStatefulSet.dependencyAnnotation }}
+  generation: 1
+  name: {{ .Values.kafkaSchemaRegistryStatefulSetName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      app: schema-registry
+  serviceName: {{ .Values.schemaRegistryServiceName }}
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - schema-registry
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL
+          value: {{ .Values.env.SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL }}
+        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+          value: {{ .Values.env.SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS }}
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS
+          value: "10000"
+        - name: SCHEMA_REGISTRY_LISTENERS
+          value: http://0.0.0.0:{{ .Values.schemaRegistryServicePort }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SCHEMA_REGISTRY_HOST_NAME
+          value: {{ .Values.env.SCHEMA_REGISTRY_HOST_NAME }}
+        image: confluentinc/cp-schema-registry:5.1.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.schemaRegistryServicePort }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        name: {{ .Values.kafkaSchemaRegistryStatefulSetContainerName }}
+        ports:
+        - containerPort: {{ .Values.schemaRegistryServicePort }}
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.schemaRegistryServicePort }}
+        resources:
+          limits:
+            cpu: 300m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+  updateStrategy:
+    type: RollingUpdate
+	

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceName }}
+spec:
+  type: NodePort
+  ports:
+  - name: "ess-ws-port"
+    port: {{ .Values.internalSvcPort }}
+    targetPort: {{ .Values.internalSvcPort }}
+    protocol: TCP
+  - name: "ess-http-port"
+    port: {{ .Values.httpPort }}
+    targetPort: {{ .Values.httpPort }}
+    protocol: TCP    
+  selector:
+    service: {{ .Values.serviceName }}

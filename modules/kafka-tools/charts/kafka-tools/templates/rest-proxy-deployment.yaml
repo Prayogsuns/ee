@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    dependency: {{ .Values.restProxyDeployment.dependencyAnnotation }}
+  name: {{ .Values.restProxyDeploymentName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-proxy
+  template:
+    metadata:
+      labels:
+        app: rest-proxy
+    spec:
+      containers:
+      - command:
+        - kafka-rest-start
+        - /etc/kafka-rest/kafka-rest.properties
+        env:
+        - name: KAFKA_REST_LOG4J_OPTS
+          value: -Dlog4j.configuration=file:/etc/kafka-rest/log4j.properties
+        - name: KAFKA_REST_HOST_NAME
+          value: {{ .Values.restProxyServiceName }}.{{ .Values.namespace }}
+        image: confluentinc/cp-kafka-rest:5.1.2
+        imagePullPolicy: IfNotPresent
+        name: rest-proxy
+        ports:
+        - containerPort: {{ .Values.restProxyPort }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.restProxyPort }}
+        volumeMounts:
+        - mountPath: /etc/kafka-rest
+          name: config
+      volumes:
+      - configMap:
+          name: {{ .Values.kafkaConfigName }}
+        name: config

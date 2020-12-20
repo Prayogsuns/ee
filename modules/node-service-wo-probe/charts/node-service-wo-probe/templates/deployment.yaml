@@ -1,0 +1,28 @@
+{{- if eq .Values.enabled true }}
+kind: Deployment
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: {{ .Values.serviceName }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      service: {{ .Values.serviceName }}
+  template:
+    metadata:
+      labels:
+        service: {{ .Values.serviceName }}
+    spec:
+      containers:
+        image: {{ .Values.containerImage }}:{{ .Values.serviceVersion }}
+        name: {{ .Values.serviceName }}-container
+        ports:
+        - containerPort: {{ .Values.servicePort }}
+      - envFrom:
+        - configMapRef:
+            name: {{ .Values.serviceName }}-env-vars"
+            optional: false		
+      imagePullSecrets:
+      - name: dockercreds
+{{- end }}

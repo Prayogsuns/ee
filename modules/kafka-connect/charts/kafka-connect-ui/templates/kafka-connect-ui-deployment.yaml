@@ -1,0 +1,33 @@
+{{- if eq .Values.enableUi true }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    dependency: {{ .Values.dependencyAnnotation }}
+  name: {{ .Values.kafkaConnectUiDeploymentName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: connect-ui
+  template:
+    metadata:
+      labels:
+        app: connect-ui
+    spec:
+      containers:
+      - env:
+        - name: CONNECT_URL
+          value: {{ .Values.env.CONNECT_URL }}
+        image: landoop/kafka-connect-ui:0.9.7
+        name: {{ .Values.kafkaConnectUiDeploymentContainerName }}
+        ports:
+        - containerPort: 8000
+          name: connect-ui
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+      imagePullSecrets:
+      - name: dockercreds
+{{- end }}
