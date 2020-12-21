@@ -44,6 +44,16 @@ variable "zookeeper-statefulset-name" {
   default = "zoo"
 }
 
+variable "zookeeper-headless-svc-name" {
+  type = string
+  default = "zoo"
+}
+
+variable "zookeeper-client-svc-name" {
+  type = string
+  default = "zookeeper"
+}
+
 variable "max-history" {
   type = string
   default = 3

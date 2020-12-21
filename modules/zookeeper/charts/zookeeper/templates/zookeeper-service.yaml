@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: zookeeper
+  name: {{ .Values.zookeeperServiceName }}
   namespace: {{ .Values.namespace }}
 spec:
   ports:

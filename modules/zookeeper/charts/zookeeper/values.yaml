@@ -8,3 +8,5 @@ clientPort: 2181
 peerPort: 2888
 leaderElectPort: 3888
 statefulSetZookeeperName: "zoo"
+zookeeperHeadlessServiceName: "zoo"
+zookeeperServiceName: "zookeeper"

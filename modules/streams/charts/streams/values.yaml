@@ -1,6 +1,6 @@
 #deploymentName: ""
 #replicas: 3
-#dependencyAnnotation: "\"\""
+dependencyAnnotation: "\"\""
 #serviceName: ""
 #containerImage: ""
 #serviceVersion: ""

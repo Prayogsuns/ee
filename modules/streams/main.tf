@@ -20,7 +20,7 @@ resource "helm_release" "streams" {
 
   set {
     name  = "dependencyAnnotation"
-    value = join(" ", var.manual_depends_on)
+    value = jsonencode(join(" ", var.manual_depends_on))
 	type = "string"
   }
   

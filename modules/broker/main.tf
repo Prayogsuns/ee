@@ -104,6 +104,18 @@ resource "helm_release" "broker" {
   }
 
   set {
+    name  = "clientServiceName"
+    value = var.broker-client-svc-name
+    type = "string"
+  }
+
+  set {
+    name  = "headlessServiceName"
+    value = var.broker-headless-svc-name
+    type = "string"
+  }
+
+  set {
     name  = "dependencyAnnotation"
     value = "${join(",", var.manual_depends_on)},${null_resource.storage-size.id}"
 	type = "string"

@@ -1,0 +1,7 @@
+#namespace: ""
+kafkaConfigName: "kafka-tools-config"
+restProxyServiceName: "rest-proxy"
+restProxyDeploymentName: "rest-proxy"
+restProxyDeployment:
+  dependencyAnnotation: "\"\""
+#restProxyPort: 8082

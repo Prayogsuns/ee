@@ -1,0 +1,7 @@
+#namespace: ""
+schemaRegistryServiceName: "kafka-schema-registry"
+#schemaRegistryServicePort: 8081
+enableUi: false
+schemaRegistryUiServiceName: "schema-registry-ui"
+schemaRegistryUiDeploymentName: "schema-registry-ui"
+schemaRegistryUiDeploymentContainerName: "schema-registry-ui"

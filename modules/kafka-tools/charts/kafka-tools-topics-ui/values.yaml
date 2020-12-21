@@ -1,0 +1,7 @@
+#namespace: ""
+enableUi: false
+restProxyServiceName: "rest-proxy"
+#restProxyPort: 8082
+topicsUiServiceName: "topics-ui"
+topicsUiDeploymentName: "topics-ui"
+topicsUiDeploymentContainerName: "kafka-connect"

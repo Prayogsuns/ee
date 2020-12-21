@@ -130,6 +130,18 @@ resource "helm_release" "zookeeper" {
     type = "string"
   }
 
+  set {
+    name  = "zookeeperHeadlessServiceName"
+    value = var.zookeeper-headless-svc-name
+    type = "string"
+  }
+
+  set {
+    name  = "zookeeperServiceName"
+    value = var.zookeeper-client-svc-name
+    type = "string"
+  }
+  
   values = [<<EOF
 data: ${local.data-config}
 EOF

@@ -1,0 +1,3 @@
+kafkaNameSpace: "kafka"
+dockerCredSecretName: "dockercreds"
+data: {}

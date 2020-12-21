@@ -65,6 +65,16 @@ variable "broker-configmap-name" {
   default = "broker-config"
 }
 
+variable "broker-client-svc-name" {
+  type = string
+  default = "bootstrap"
+}
+
+variable "broker-headless-svc-name" {
+  type = string
+  default = "broker"
+}
+
 variable "max-history" {
   type = string
   default = 3
