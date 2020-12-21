@@ -1,6 +1,17 @@
+data "external" "kafka-connect" {
+  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_uid.sh"]
+
+  query = {
+    resource_type = "statefulset"
+    resource_name = ${local.stateful-set-name}
+    namespace     = var.namespace
+  }
+
+}
+
 output "kafka-connect-uid" {
-  depends_on = [kubernetes_stateful_set.kafka-connect]
-  value      = kubernetes_stateful_set.kafka-connect.metadata.0.uid
+  depends_on = [helm_release.kafka-connect]
+  value      = data.external.kafka-connect.result["uid"]
 }
 
 output "start-connectors-id" {
@@ -9,12 +20,12 @@ output "start-connectors-id" {
 }
 
 output "kafka-connect-pod-name" {
-  depends_on = [kubernetes_stateful_set.kafka-connect]
-  value      = kubernetes_stateful_set.kafka-connect.metadata.0.name
+  depends_on = [helm_release.kafka-connect]
+  value      = ${local.stateful-set-name}
 }
 
 output "kafka-connect-svc-name" {
-  depends_on = [kubernetes_service.kafka-connect]
-  value      = kubernetes_service.kafka-connect.metadata.0.name
+  depends_on = [helm_release.kafka-connect]
+  value      = ${local.kafka-connect-service-name}
 }
 

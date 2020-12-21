@@ -1,12 +1,16 @@
+locals {
+  zookeeper-storageclass-name = "kafka-zookeeper"
+}
+
 resource "helm_release" "zookeeper-storageclass" {
-  name  = ${var.zookeeper-storageclass-name}-storageclass
+  name  = ${local.zookeeper-storageclass-name}-storageclass
 
   chart = "${path.module}/charts/storageclass"
   max_history = var.max-history
 
   set {
     name  = "zookeeperStorageClassName"
-    value = var.zookeeper-storageclass-name
+    value = ${local.zookeeper-storageclass-name}
   }
 
 }
@@ -29,7 +33,7 @@ resource "null_resource" "storage-size" {
   }
 
   provisioner "local-exec" {
-    command = "/bin/bash -c \"${path.module}/scripts/modify_volume.sh ${var.zookeeper-storageclass-name} ${var.namespace} ${var.zookeeper-storage-size}\""
+    command = "/bin/bash -c \"${path.module}/scripts/modify_volume.sh ${local.zookeeper-storageclass-name} ${var.namespace} ${var.zookeeper-storage-size}\""
   }
 
   provisioner "local-exec" {
@@ -63,6 +67,12 @@ locals {
 }
 locals {
   data-config = jsonencode(${local.data})
+  
+  zookeeper-configmap-name    = "zookeeper-config"
+  zookeeper-statefulset-name  = "zoo"
+  zookeeper-headless-svc-name = "zoo"
+  zookeeper-client-svc-name   = "zookeeper"
+  
 }
 
 resource "helm_release" "zookeeper" {
@@ -102,7 +112,7 @@ resource "helm_release" "zookeeper" {
 
   set {
     name  = "zookeeperConfigName"
-    value = var.zookeeper-configmap-name
+    value = ${local.zookeeper-configmap-name}
 	type = "string"
   }
 
@@ -126,19 +136,19 @@ resource "helm_release" "zookeeper" {
 
   set {
     name  = "statefulSetZookeeperName"
-    value = var.zookeeper-statefulset-name
+    value = ${local.zookeeper-statefulset-name}
     type = "string"
   }
 
   set {
     name  = "zookeeperHeadlessServiceName"
-    value = var.zookeeper-headless-svc-name
+    value = ${local.zookeeper-headless-svc-name}
     type = "string"
   }
 
   set {
     name  = "zookeeperServiceName"
-    value = var.zookeeper-client-svc-name
+    value = ${local.zookeeper-client-svc-name}
     type = "string"
   }
   
@@ -148,6 +158,6 @@ EOF
   ]
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/wait_for_zookeeper.sh ${var.zookeeper-statefulset-name} ${var.namespace}"
+    command = "${path.module}/scripts/wait_for_zookeeper.sh ${local.zookeeper-statefulset-name} ${var.namespace}"
   }
 }

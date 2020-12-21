@@ -55,26 +55,6 @@ variable "retention-period-hrs" {
   type = string
 }
 
-variable "broker-storageclass-name" {
-  type = string
-  default = "kafka-broker"
-}
-
-variable "broker-configmap-name" {
-  type = string
-  default = "broker-config"
-}
-
-variable "broker-client-svc-name" {
-  type = string
-  default = "bootstrap"
-}
-
-variable "broker-headless-svc-name" {
-  type = string
-  default = "broker"
-}
-
 variable "max-history" {
   type = string
   default = 3

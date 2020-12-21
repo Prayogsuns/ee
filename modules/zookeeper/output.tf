@@ -3,7 +3,7 @@ data "external" "res-uid" {
 
   query = {
     resource_type = "statefulset"
-    resource_name = var.zookeeper-statefulset-name
+    resource_name = ${local.zookeeper-statefulset-name}
     namespace     = var.namespace
   }
 
@@ -16,16 +16,16 @@ output "zookeeper-uid" {
 
 output "pod-name" {
   depends_on = [helm_release.zookeeper]
-  value      = var.zookeeper-statefulset-name
+  value      = ${local.zookeeper-statefulset-name}
 }
 
 output "zookeeper-client-svc-name" {
   depends_on = [helm_release.zookeeper]
-  value      = var.zookeeper-client-svc-name
+  value      = ${local.zookeeper-client-svc-name}
 }
 
 output "zookeeper-headless-svc-name" {
   depends_on = [helm_release.zookeeper]
-  value      = var.zookeeper-headless-svc-name
+  value      = ${local.zookeeper-headless-svc-name}
 }
 

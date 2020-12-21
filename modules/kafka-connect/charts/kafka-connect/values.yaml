@@ -1,14 +1,14 @@
 #namespace: ""
-kafkaConfigName: "kafka-tools-config"
+#kafkaConfigName: "kafka-tools-config"
 kafkaConnectServiceName: "kafka-connect"
 #kafkaConnectPort: 8083
 #kafkaConnectService:
-#   selectorLabelValue: "kafka-connect-${lower(replace(var.kafka-connect-version, ".", "-"))}"
+#   selectorLabelValue: 
 #kafkaConnectStatefulSetName: 
-#kafkaConnectStatefulSet:
-#  dependencyAnnotation: "\"\""
+kafkaConnectStatefulSet:
+  dependencyAnnotation: "\"\""
 #  env:
-#    KAFKA_SCHEMA_REGISTRY_URL: join(",", formatlist("http://%s-%s.%s.%s:%s", var.schema-registry-pod-name, list("0","1","2"), var.schema-registry-svc-name, var.namespace, var.schema-registry-port))
+#    KAFKA_SCHEMA_REGISTRY_URL: 
 #    AVLM_ONLY_DEPLOYMENT: 
 kafkaConnectStatefulSetContainerName: "kafka-connect"
 #kafkaConnectStatefulSetContainerImage: 

@@ -6,9 +6,6 @@ terraform {
     external = {
       source = "hashicorp/external"
     }
-    kubernetes = {
-      source = "hashicorp/kubernetes"
-    }
     null = {
       source = "hashicorp/null"
     }

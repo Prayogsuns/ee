@@ -1,12 +1,16 @@
+locals {
+  broker-storageclass-name = "kafka-broker"
+}
+
 resource "helm_release" "broker-storageclass" {
-  name  = ${var.broker-storageclass-name}-storageclass
+  name  = ${local.broker-storageclass-name}-storageclass
 
   chart = "${path.module}/charts/storageclass"
   max_history = var.max-history
 
   set {
     name  = "kafkaStorageClassName"
-    value = var.broker-storageclass-name
+    value = ${local.broker-storageclass-name}
   }
 
 }
@@ -29,7 +33,7 @@ resource "null_resource" "storage-size" {
   }
 
   provisioner "local-exec" {
-    command = "/bin/bash -c \"${path.module}/scripts/modify_volume.sh ${var.broker-storageclass-name} ${var.namespace} ${var.broker-storage-size}\""
+    command = "/bin/bash -c \"${path.module}/scripts/modify_volume.sh ${local.broker-storageclass-name} ${var.namespace} ${var.broker-storage-size}\""
   }
 
   provisioner "local-exec" {
@@ -70,8 +74,12 @@ locals {
   }
 }
 locals {
-  data-config = jsonencode(${local.data})
-  stateful-set-name = "kafka-${lower(replace(var.broker-version, ".", "-"))}"
+  data-config                  = jsonencode(${local.data})
+  
+  stateful-set-name            = "kafka-${lower(replace(var.broker-version, ".", "-"))}"
+  broker-configmap-name        = "broker-config"
+  broker-headless-svc-name     = "broker"
+  broker-client-svc-name       = "bootstrap"
 }
 
 resource "helm_release" "broker" {
@@ -87,7 +95,7 @@ resource "helm_release" "broker" {
 
   set {
     name  = "kafkaStorageClassName"
-    value = var.broker-storageclass-name
+    value = ${local.broker-storageclass-name}
 	type = "string"
   }
 
@@ -105,13 +113,13 @@ resource "helm_release" "broker" {
 
   set {
     name  = "clientServiceName"
-    value = var.broker-client-svc-name
+    value = ${local.broker-client-svc-name}
     type = "string"
   }
 
   set {
     name  = "headlessServiceName"
-    value = var.broker-headless-svc-name
+    value = ${local.broker-headless-svc-name}
     type = "string"
   }
 
@@ -129,7 +137,7 @@ resource "helm_release" "broker" {
 
   set {
     name  = "kafkaConfigName"
-    value = var.broker-configmap-name
+    value = ${local.broker-configmap-name}
 	type = "string"
   }
 

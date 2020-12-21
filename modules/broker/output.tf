@@ -26,11 +26,11 @@ output "broker-pod-name" {
 
 output "broker-client-svc-name" {
   depends_on = [helm_release.broker]
-  value      = var.broker-client-svc-name
+  value      = ${local.broker-client-svc-name}
 }
 
 output "broker-headless-svc-name" {
   depends_on = [helm_release.broker]
-  value      = var.broker-headless-svc-name
+  value      = ${local.broker-headless-svc-name}
 }
 
