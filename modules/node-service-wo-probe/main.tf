@@ -1,3 +1,10 @@
+/*
+This module defines a NodePort service in kubernetes (this means that if you know the exposed nodeport value, you can send traffic to the deployment pods, regardless of which node you send traffic to.
+
+To allow for reusability, this doesn't actually mean that we expose an AWS loadbalancer to the pods for this nodeport.  That will be added on by another module when needed.
+*/
+
+
 locals {
   env-vars = jsonencode(var.env-vars)
 }
@@ -41,7 +48,7 @@ resource "helm_release" "node-service-wo-probe" {
 
   set {
     name  = "dependencyAnnotation"
-    value = join(" ", var.manual_depends_on)
+    value = jsonencode(join(" ", var.manual_depends_on))
 	type = "string"
   }
 

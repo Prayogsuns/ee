@@ -1,6 +1,6 @@
 output "node-port" {
-  depends_on = [kubernetes_service.k8-svc]
-  value      = kubernetes_service.k8-svc.spec.0.port.0.node_port
+  depends_on = [helm_release.event-subscription-service]
+  value      = data.external.k8s-svc.result["nodeports"][0]
 }
 
 output "ess-endpoint" {

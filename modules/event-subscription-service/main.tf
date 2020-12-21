@@ -45,7 +45,7 @@ resource "helm_release" "event-subscription-service" {
 
   set {
     name  = "dependencyAnnotation"
-    value = join(" ", var.manual_depends_on)
+    value = jsonencode(join(" ", var.manual_depends_on))
 	type = "string"
   }
 
@@ -61,7 +61,7 @@ EOF
 }
 
 resource "null_resource" "reset-pods" {
-  depends_on = [helm_release.node-service-wo-probe]
+  depends_on = [helm_release.event-subscription-service]
 
   triggers = {
     env-var-names  = join(",", keys(var.env-vars))
@@ -71,6 +71,16 @@ resource "null_resource" "reset-pods" {
   provisioner "local-exec" {
     command = "for p in $(kubectl get po | awk '/^${var.svc-name}/ {print $1}'); do kubectl delete po $p; done"
   }
+}
+
+data "external" "k8s-svc" {
+  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_data.sh"]
+
+  query = {
+    resource_type = "service"
+    resource_name = var.svc-name
+  }
+
 }
 
 
@@ -86,14 +96,14 @@ resource "aws_lb" "alb" {
 
 resource "aws_lb_target_group" "alb-target" {
   name     = "${var.svc-name}-tg"
-  port     = kubernetes_service.k8-svc.spec.0.port.0.node_port
+  port     = data.external.k8s-svc.result["nodeports"][0]
   protocol = "HTTP"
   vpc_id   = data.external.cluster-info.result["vpc_id"]
 
   health_check {
     protocol = "HTTP"
     path     = "/health"
-    port     = kubernetes_service.k8-svc.spec.0.port.1.node_port
+    port     = data.external.k8s-svc.result["nodeports"][1]
   }
 }
 
@@ -145,8 +155,8 @@ resource "aws_security_group_rule" "allow-alb-ws2" {
 
 resource "aws_security_group_rule" "allow-ess-ws" {
   type              = "ingress"
-  from_port         = kubernetes_service.k8-svc.spec.0.port.0.node_port
-  to_port           = kubernetes_service.k8-svc.spec.0.port.0.node_port
+  from_port         = data.external.k8s-svc.result["nodeports"][0]
+  to_port           = data.external.k8s-svc.result["nodeports"][0]
   protocol          = "TCP"
   security_group_id = data.aws_security_group.node-sg.id
   cidr_blocks       = sort(split(" ", data.external.cluster-info.result["cluster-cidrs"]))
@@ -155,8 +165,8 @@ resource "aws_security_group_rule" "allow-ess-ws" {
 
 resource "aws_security_group_rule" "allow-ess-http" {
   type              = "ingress"
-  from_port         = kubernetes_service.k8-svc.spec.0.port.1.node_port
-  to_port           = kubernetes_service.k8-svc.spec.0.port.1.node_port
+  from_port         = data.external.k8s-svc.result["nodeports"][1]
+  to_port           = data.external.k8s-svc.result["nodeports"][1]
   protocol          = "TCP"
   security_group_id = data.aws_security_group.node-sg.id
   cidr_blocks       = sort(split(" ", data.external.cluster-info.result["cluster-cidrs"]))
