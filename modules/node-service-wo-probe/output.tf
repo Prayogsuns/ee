@@ -4,16 +4,20 @@ data "external" "k8s-svc" {
   query = {
     resource_type = "service"
     resource_name = var.svc-name
+	namespace     = "default"
+	query_type    = "nodeport"
   }
 
 }
 
 data "external" "k8s-deploy" {
-  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_uid.sh"]
+  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_data.sh"]
 
   query = {
     resource_type = "deployment"
     resource_name = var.svc-name
+	namespace     = "default"
+	query_type    = "uid"	
   }
 
 }

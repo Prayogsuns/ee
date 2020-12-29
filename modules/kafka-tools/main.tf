@@ -169,6 +169,7 @@ data "external" "schema-registry-ui" {
     resource_type = "service"
     resource_name = ${local.schema-registry-ui-service-name}
     namespace     = var.namespace
+	query_type    = "nodeport"
   }
 
 }
@@ -294,6 +295,7 @@ data "external" "topics-ui" {
     resource_type = "service"
     resource_name = ${local.topics-ui-service-name}
     namespace     = var.namespace
+	query_type    = "nodeport"
   }
 
 }

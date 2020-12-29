@@ -1,21 +1,23 @@
 data "external" "schema-registry-uid" {
-  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_uid.sh"]
+  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_data.sh"]
 
   query = {
     resource_type = "statefulset"
     resource_name = ${local.kafka-schema-registry-statefulset-name}
     namespace     = var.namespace
+	query_type    = "uid"
   }
 
 }
 
 data "external" "rest-proxy-uid" {
-  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_uid.sh"]
+  program = ["/bin/bash", "${path.root}/scripts/get_k8s_resource_data.sh"]
 
   query = {
     resource_type = "deployment"
     resource_name = ${local.rest-proxy-deployment-name}
     namespace     = var.namespace
+	query_type    = "uid"
   }
 
 }

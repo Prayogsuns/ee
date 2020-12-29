@@ -323,6 +323,7 @@ data "external" "connect-ui" {
     resource_type = "service"
     resource_name = ${local.kafka-connect-ui-service-name}
     namespace     = var.namespace
+	query_type    = "nodeport"
   }
 
 }
